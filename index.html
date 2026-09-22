@@ -2153,11 +2153,25 @@ a{color:inherit}
                limb(shR, [x + 74, barY + 34], 20, 16) + limb([x + 74, barY + 34], [x + 70, barY], 16, 13);
     var legs = limb(hipL, kneeL, 36, 26) + limb(kneeL, ankL, 26, 17) + limb(hipR, kneeR, 36, 26) + limb(kneeR, ankR, 26, 17);
     var head = ell(x, shY - 38, 19, 22) + 'M' + f(x - 20) + ' ' + f(shY - 44) + 'q2 -26 22 -24q20 -2 20 22q-20 -10 -42 2Z';
-    var bar = 'M' + f(x - 250) + ' ' + f(barY - 4) + 'h500v8h-500Z' +
-      'M' + f(x - 236) + ' ' + f(barY - 62) + 'h26v124h-26Z' + 'M' + f(x - 206) + ' ' + f(barY - 48) + 'h16v96h-16Z' +
-      'M' + f(x + 210) + ' ' + f(barY - 62) + 'h26v124h-26Z' + 'M' + f(x + 190) + ' ' + f(barY - 48) + 'h16v96h-16Z';
-    return torso + arms + legs + head + limb([x, shY - 8], [x, shY - 22], 16, 15) + bar +
-      'M' + f(ankL[0] - 26) + ' ' + f(floor) + 'q2 -16 26 -18q22 2 24 18Z' + 'M' + f(ankR[0] - 24) + ' ' + f(floor) + 'q2 -16 26 -18q22 2 24 18Z';
+    return {
+      body: torso + arms + legs + head + limb([x, shY - 8], [x, shY - 22], 16, 15) +
+        'M' + f(ankL[0] - 26) + ' ' + f(floor) + 'q2 -16 26 -18q22 2 24 18Z' + 'M' + f(ankR[0] - 24) + ' ' + f(floor) + 'q2 -16 26 -18q22 2 24 18Z',
+      bell: barbell(x, barY)
+    };
+  }
+  // the barbell on his back: a thin bar with collars, two big plates and a small one on each side.
+  // The plates are discs turned a little toward us, so they read as round weights, not as the ends of a bar.
+  var BAR_HALF = 215;
+  function barbell(x, y) {
+    var bar = 'M' + f(x - BAR_HALF) + ' ' + f(y - 4) + 'h' + 2 * BAR_HALF + 'v8h' + -2 * BAR_HALF + 'Z';
+    var big = '', small = '', rings = '';
+    [-1, 1].forEach(function (s) {
+      bar += 'M' + f(x + s * 124 - 4) + ' ' + f(y - 11) + 'h8v22h-8Z' + 'M' + f(x + s * 205 - 3) + ' ' + f(y - 9) + 'h6v18h-6Z';
+      big += ell(x + s * 145, y, 13, 66) + ell(x + s * 167, y, 13, 66);
+      small += ell(x + s * 189, y, 10, 44);
+      rings += ell(x + s * 145, y, 7, 50) + ell(x + s * 167, y, 7, 50);
+    });
+    return { bar: bar, big: big, small: small, rings: rings };
   }
 
   // typing at a desk, seated in profile facing left; phase 0..1
@@ -2290,17 +2304,20 @@ a{color:inherit}
       '<path d="M270 132V438M132 285H408" stroke="#070A14" stroke-width="8"/>' +
       '<rect x="1230" y="140" width="340" height="12" fill="#1B2140"/><rect x="1230" y="250" width="340" height="10" fill="#1B2140"/><rect x="1230" y="360" width="340" height="10" fill="#1B2140"/><rect x="1230" y="470" width="340" height="10" fill="#1B2140"/>' + books +
       '<rect y="740" width="1600" height="160" fill="#07090F"/>' +
-      '<path d="M460 318L420 612H760L600 318Z" fill="url(#dCone)"/>' +
-      '<ellipse cx="560" cy="612" rx="250" ry="34" fill="url(#dPool)"/>' +
-      '<ellipse cx="780" cy="520" rx="260" ry="200" fill="url(#dScreen)" class="screenglow"/>' +
-      '<rect x="360" y="606" width="760" height="18" rx="4" fill="#1B1622"/><rect x="360" y="606" width="760" height="5" fill="#6B4B2E" opacity=".7"/>' +
-      '<rect x="390" y="624" width="16" height="116" fill="#100D14"/><rect x="1080" y="624" width="16" height="116" fill="#100D14"/>' +
-      '<path d="M470 606h60l-12 -10h-36Z" fill="#0B0A10"/><path d="M500 596L470 420L538 330" stroke="#0B0A10" stroke-width="9" fill="none"/>' +
-      '<path d="M520 316l52 -22l20 30l-52 20Z" fill="#0B0A10"/>' +
-      '<path d="M660 604L866 604L880 612L648 612Z" fill="#12151F"/>' +
-      '<path d="M672 604L700 466L884 454L862 604Z" fill="#0B0D14"/><path d="M684 596L708 476L870 466L852 596Z" fill="#6FA2F0" class="lapglow"/>' +
-      '<rect x="940" y="572" width="30" height="34" rx="5" fill="#0B0A10"/>' +
-      '<path class="steam" d="M950 562c-12 -20 14 -30 0 -52M962 562c-10 -18 12 -28 0 -48" stroke="#E9D7BE" stroke-width="3" fill="none" opacity=".35"/>' +
+      // the desk stands at the height of his hands, so he types on the laptop and not on the air
+      '<path d="M460 284L420 578H760L600 284Z" fill="url(#dCone)"/>' +
+      '<ellipse cx="560" cy="578" rx="250" ry="34" fill="url(#dPool)"/>' +
+      '<ellipse cx="830" cy="490" rx="250" ry="200" fill="url(#dScreen)" class="screenglow"/>' +
+      '<rect x="360" y="572" width="686" height="18" rx="4" fill="#1B1622"/><rect x="360" y="572" width="686" height="5" fill="#6B4B2E" opacity=".7"/>' +
+      '<rect x="390" y="590" width="16" height="150" fill="#100D14"/><rect x="1030" y="590" width="16" height="150" fill="#100D14"/>' +
+      '<path d="M470 572h60l-12 -10h-36Z" fill="#0B0A10"/><path d="M500 562L470 386L538 296" stroke="#0B0A10" stroke-width="9" fill="none"/>' +
+      '<path d="M520 282l52 -22l20 30l-52 20Z" fill="#0B0A10"/>' +
+      // the laptop right in front of him: the keyboard runs out under his hands, the screen turned toward him
+      '<path d="M756 566L946 566L992 573L744 573Z" fill="#12151F"/><path d="M800 566L940 566" stroke="#2A3150" stroke-width="2"/>' +
+      '<path d="M762 566L782 436L906 428L898 566Z" fill="#0B0D14"/><path d="M773 557L792 446L896 439L889 557Z" fill="#6FA2F0" class="lapglow"/>' +
+      // the mug, pushed to the far side of the laptop
+      '<rect x="696" y="538" width="30" height="34" rx="5" fill="#0B0A10"/>' +
+      '<path class="steam" d="M706 528c-12 -20 14 -30 0 -52M718 528c-10 -18 12 -28 0 -48" stroke="#E9D7BE" stroke-width="3" fill="none" opacity=".35"/>' +
       '<path d="M1010 740V640h96v-20h-110v120Z" fill="#0A0B12"/><rect x="1040" y="652" width="12" height="88" fill="#0A0B12"/>' +
       '<rect x="1086" y="470" width="16" height="170" rx="6" fill="#0A0B12"/>' +
       '<g class="typist"></g>'
@@ -2322,7 +2339,8 @@ a{color:inherit}
       '<g stroke="#1C1F2B" stroke-width="8"><path d="M370 80V330M260 205H480M670 80V330M560 205H780M970 80V330M860 205H1080M1270 80V330M1160 205H1380"/></g>' +
       '<g class="shafts"><path d="M260 330L480 330L900 900L520 900Z" fill="url(#gShaft)"/><path d="M860 330L1080 330L1500 900L1120 900Z" fill="url(#gShaft)"/></g>' +
       '<rect y="740" width="1600" height="160" fill="url(#gFloor)"/>' +
-      '<g fill="#0B0C12"><rect x="470" y="330" width="22" height="412"/><rect x="1108" y="330" width="22" height="412"/><rect x="470" y="330" width="660" height="18"/>' +
+      // a squat stand without a top bar, so the barbell never reads as part of the frame
+      '<g fill="#0B0C12"><rect x="470" y="330" width="22" height="412"/><rect x="1108" y="330" width="22" height="412"/>' +
       '<rect x="120" y="600" width="170" height="14"/><rect x="130" y="614" width="10" height="126"/><rect x="270" y="614" width="10" height="126"/>' +
       '<circle cx="160" cy="590" r="16"/><circle cx="205" cy="590" r="16"/><circle cx="250" cy="590" r="16"/>' +
       '<rect x="1320" y="520" width="18" height="220"/><circle cx="1329" cy="560" r="52"/><circle cx="1329" cy="650" r="42"/></g>' +
@@ -2383,7 +2401,7 @@ a{color:inherit}
   var heroCard = document.querySelector('.hero-card'), topbar = document.querySelector('.topbar');
 
   // where the screen falls on this viewport, given the drawing is scaled to cover it
-  var RECTS = {}, SHOTS = {};
+  var RECTS = {}, SHOTS = {}, lifterScale = 1.32;
   function layout() {
     var W = world.clientWidth || window.innerWidth, H = world.clientHeight || window.innerHeight;
     var k = Math.max(W / VW, H / VH), ox = (W - VW * k) / 2, oy = (H - VH * k) / 2;
@@ -2407,6 +2425,9 @@ a{color:inherit}
       gym: tileShot(RECTS.gym, FOCUS.gym),
       sky: tileShot(RECTS.sky, FOCUS.sky)
     };
+    // the lifter shrinks on a narrow screen until the whole bar, plates included, fits in the frame
+    var gymSpan = Math.min(1, 100 / (SHOTS.gym.s * RECTS.gym.w)) * VW;
+    lifterScale = Math.min(1.32, 0.86 * gymSpan / (2 * BAR_HALF + 12));
   }
   // a scene filling the screen: centred on a wide screen, leaning toward its figure on a narrow one
   function tileShot(r, fx) {
@@ -2487,7 +2508,11 @@ a{color:inherit}
   }
   function drawLifter(t) {
     var dd = (1 - Math.cos((t * 0.34 % 1) * Math.PI * 2)) / 2;
-    lifterG.innerHTML = '<g transform="translate(800 742) scale(1.32) translate(-800 -742)">' + lit(squatter(dd, [800, 742]), '#07080C', '#FFCB8A', 0, -2.4) + '</g>';
+    var q = squatter(dd, [800, 742]), b = q.bell;
+    lifterG.innerHTML = '<g transform="translate(800 742) scale(' + lifterScale.toFixed(3) + ') translate(-800 -742)">' +
+      lit(b.bar, '#07080C', '#FFCB8A', 0, -2.4) + lit(q.body, '#07080C', '#FFCB8A', 0, -2.4) +
+      lit(b.big, '#6B232A', '#FFC07A', -1.8, -2.6) + '<path d="' + b.rings + '" fill="none" stroke="#9A4046" stroke-width="2" opacity=".55"/>' +
+      lit(b.small, '#1C1F29', '#FFCB8A', -1.4, -2.2) + '</g>';
   }
   function drawViewer(t) {
     var b = Math.sin(t * 1.3) * 2.2;
