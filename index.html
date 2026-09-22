@@ -2174,19 +2174,70 @@ a{color:inherit}
     return { bar: bar, big: big, small: small, rings: rings };
   }
 
-  // typing at a desk, seated in profile facing left; phase 0..1
-  function typist(ph, hip) {
-    var tap = Math.sin(ph * Math.PI * 8), tap2 = Math.sin(ph * Math.PI * 8 + 2.4), nod = Math.sin(ph * Math.PI * 2) * 2.5;
-    var sh = at(hip, 180 - 14, BODY.torso), neck = at(sh, 180 - 22, BODY.neck), hc = at(neck, 180 - 14 + nod, BODY.head);
-    var knee = [hip[0] - 88, hip[1] + 4], ankle = [knee[0] - 6, knee[1] + BODY.shin];
-    var e1 = at(sh, 34, BODY.upper), h1 = [e1[0] - 52, e1[1] + 2 + tap * 3];
-    var e2 = at(sh, 42, BODY.upper - 4), h2 = [e2[0] - 50, e2[1] + 1 + tap2 * 3];
+  // working at the desk, seen from behind his chair: head and shoulders against the screen, elbows out,
+  // the left hand typing on the keyboard and the right one on the mouse; t in seconds
+  function typist(t) {
+    var x = 930, sway = Math.sin(t * 1.3) * 1.2, nod = Math.sin(t * 0.9) * 1.6;
+    var tapL = Math.sin(t * 17) * 1.8, tapR = Math.sin(t * 5.3) * 1.2;
+    var hx = x + sway * 0.6, hy = 468 + nod;
+    // the hair runs the same way round as the skull, so the two fill as one shape instead of cutting a hole
+    var head = ell(hx, hy, 50, 58) + 'M' + f(hx - 52) + ' ' + f(hy - 10) + 'Q' + f(hx - 28) + ' ' + f(hy - 38) + ' ' + f(hx) + ' ' + f(hy - 38) +
+      'Q' + f(hx + 28) + ' ' + f(hy - 38) + ' ' + f(hx + 52) + ' ' + f(hy - 12) + 'Q' + f(hx + 46) + ' ' + f(hy - 76) + ' ' + f(hx) + ' ' + f(hy - 78) +
+      'Q' + f(hx - 46) + ' ' + f(hy - 76) + ' ' + f(hx - 52) + ' ' + f(hy - 10) + 'Z';
+    var ears = ell(hx - 50, hy + 8, 9, 16) + ell(hx + 50, hy + 8, 9, 16);
+    var neck = 'M' + f(x - 22) + ' 512h44v48h-44Z';
+    var back = 'M818 626Q822 578 872 566Q930 552 988 566Q1038 578 1042 626L1024 704H836Z';
+    var eL = [806, 676 + tapL * 0.25], eR = [1054, 676 + tapR * 0.2];
     return {
-      far: limb(sh, e2, 16, 13) + limb(e2, h2, 13, 10),
-      near: limb(hip, sh, 44, 50) + limb(sh, neck, 16, 15) + headShape(hc, -1) +
-        limb(hip, knee, 32, 24) + limb(knee, ankle, 22, 15) + shoe(ankle, -1, 0) +
-        limb(sh, e1, 18, 15) + limb(e1, h1, 15, 11)
+      fore: limb(eL, [852, 616 + tapL], 30, 20) + limb(eR, [996, 614 + tapR * 0.5], 30, 20),
+      body: back + neck + head + ears + limb([842, 592], eL, 42, 32) + limb([1018, 592], eR, 42, 32),
+      chair: 'M846 704Q844 664 876 660H984Q1016 664 1014 704L1006 814Q1004 826 990 826H870Q856 826 854 814Z' + 'M922 826h16v44h-16Z'
     };
+  }
+
+  // the code on his screen: a made-up file, typed out line by line. Each line is a few coloured runs,
+  // kept short enough to stay clear of his head, which covers the lower right of the screen.
+  var CODE = (function () {
+    var s = 11;
+    function r() { s = (s * 16807) % 2147483647; return s / 2147483647; }
+    var hues = ['#C792EA', '#82AAFF', '#C3E88D', '#F78C6C', '#A6B3CC', '#89DDFF', '#A6B3CC'];
+    var lines = [], ind = 0;
+    for (var i = 0; i < 44; i++) {
+      var segs = [];
+      if (i % 11 === 10) ind = 0;                                                        // a blank line between blocks
+      else if (i % 11 === 0) segs = [[20, '#C792EA'], [52 + Math.floor(r() * 30), '#82AAFF'], [22, '#A6B3CC']];
+      else if (r() < 0.18) segs = [[70 + Math.floor(r() * 110), '#546380']];             // a comment
+      else for (var k = 0, n = 1 + Math.floor(r() * 4); k < n; k++) segs.push([10 + Math.floor(r() * 44), hues[Math.floor(r() * hues.length)]]);
+      var room = 236 - ind * 16, used = 0, len = 12;
+      segs = segs.filter(function (sg) { used += sg[0] + 6; return used <= room; });
+      segs.forEach(function (sg) { len += sg[0] + 6; });
+      lines.push({ ind: ind, segs: segs, len: len });
+      if (i % 11 === 0) ind = 1;
+      else if (r() < 0.22 && ind < 3) ind++;
+      else if (r() < 0.22 && ind > 1) ind--;
+    }
+    return lines;
+  })();
+  var CODE_TOTAL = CODE.reduce(function (a, l) { return a + l.len; }, 0);
+  function codeScreen(t) {
+    var speed = 85, cycle = CODE_TOTAL / speed + 2.5, u = (t % cycle) * speed;
+    var i = 0, acc = 0;
+    while (i < CODE.length - 1 && acc + CODE[i].len <= u) { acc += CODE[i].len; i++; }
+    var partial = Math.min(CODE[i].len, u - acc), rows = 12, first = Math.max(0, i - rows + 1);
+    var out = '', cx = 618, cy = 316;
+    for (var j = first; j <= i; j++) {
+      var y = 316 + (j - first) * 16, L = CODE[j], x = 618 + L.ind * 16, left = j < i ? Infinity : partial;
+      out += '<rect x="598" y="' + y + '" width="' + (j < 9 ? 6 : 11) + '" height="5" rx="1.5" fill="#34405E"/>';
+      for (var k = 0; k < L.segs.length && left > 0; k++) {
+        var w = Math.min(L.segs[k][0], left);
+        out += '<rect x="' + x + '" y="' + y + '" width="' + f(w) + '" height="6" rx="3" fill="' + L.segs[k][1] + '"/>';
+        x += w + 6; left -= L.segs[k][0] + 6;
+      }
+      if (j === i) { cx = x; cy = y; }
+    }
+    out = '<rect x="612" y="' + (cy - 4) + '" width="376" height="14" fill="#FFFFFF" opacity=".045"/>' + out;
+    if ((t * 1.6) % 1 < 0.55) out += '<rect x="' + f(cx - 3) + '" y="' + (cy - 3) + '" width="2.5" height="12" fill="#E8EEFF"/>';
+    return out;
   }
 
   // the viewer, seen from behind: head, hood, shoulders and the arm with the remote
@@ -2289,8 +2340,17 @@ a{color:inherit}
       var bx = 1240 + i * 12 + Math.floor(i / 9) * 14, shelf = 250 + Math.floor(i / 9) * 110, bh = 62 + (i * 13) % 26;
       books += '<rect x="' + bx + '" y="' + (shelf - bh) + '" width="10" height="' + bh + '" fill="' + colors[i % 5] + '"/>';
     }
+    // the month on his wall: thirty days, the first seventeen marked, like the chain on the page
+    var cal = '';
+    for (var d = 0; d < 30; d++) {
+      var cx = 740 + (d % 6) * 18, cy = 146 + Math.floor(d / 6) * 19;
+      cal += '<rect x="' + cx + '" y="' + cy + '" width="14" height="14" rx="2" fill="none" stroke="#4A5378" stroke-width="1.5"/>';
+      if (d < 17) cal += '<path d="M' + (cx + 3.5) + ' ' + (cy + 3.5) + 'l7 7m0 -7l-7 7" stroke="#C8A231" stroke-width="2" stroke-linecap="round"/>';
+    }
     return svgEl(
       '<defs>' +
+        '<linearGradient id="dCode" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#101A33"/><stop offset="1" stop-color="#0A1124"/></linearGradient>' +
+        '<clipPath id="dScreenClip"><rect x="592" y="308" width="400" height="204"/></clipPath>' +
         '<linearGradient id="dWall" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#101529"/><stop offset="1" stop-color="#0A0D19"/></linearGradient>' +
         '<linearGradient id="dCone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFC878" stop-opacity=".55"/><stop offset="1" stop-color="#FFC878" stop-opacity="0"/></linearGradient>' +
         '<radialGradient id="dPool" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFC878" stop-opacity=".45"/><stop offset="1" stop-color="#FFC878" stop-opacity="0"/></radialGradient>' +
@@ -2303,23 +2363,38 @@ a{color:inherit}
       '<circle cx="190" cy="180" r="2" fill="#fff"/><circle cx="250" cy="300" r="1.6" fill="#fff"/><circle cx="380" cy="360" r="1.8" fill="#fff"/>' +
       '<path d="M270 132V438M132 285H408" stroke="#070A14" stroke-width="8"/>' +
       '<rect x="1230" y="140" width="340" height="12" fill="#1B2140"/><rect x="1230" y="250" width="340" height="10" fill="#1B2140"/><rect x="1230" y="360" width="340" height="10" fill="#1B2140"/><rect x="1230" y="470" width="340" height="10" fill="#1B2140"/>' + books +
+      // the monitor's light on the wall behind it
+      '<ellipse cx="792" cy="404" rx="470" ry="300" fill="url(#dScreen)"/>' +
+      // above the screen, a wall calendar with a mark on every day done; a note stuck beside the screen
+      '<rect x="728" y="110" width="128" height="142" rx="4" fill="#232842"/><rect x="728" y="110" width="128" height="24" rx="4" fill="#1A1E36"/>' +
+      '<path d="M756 110v-8M828 110v-8" stroke="#3A4165" stroke-width="3" stroke-linecap="round"/>' + cal +
+      '<rect x="1014" y="300" width="30" height="30" fill="#6E5A1F" transform="rotate(6 1029 315)"/>' +
       '<rect y="740" width="1600" height="160" fill="#07090F"/>' +
-      // the desk stands at the height of his hands, so he types on the laptop and not on the air
-      '<path d="M460 284L420 578H760L600 284Z" fill="url(#dCone)"/>' +
-      '<ellipse cx="560" cy="578" rx="250" ry="34" fill="url(#dPool)"/>' +
-      '<ellipse cx="830" cy="490" rx="250" ry="200" fill="url(#dScreen)" class="screenglow"/>' +
-      '<rect x="360" y="572" width="686" height="18" rx="4" fill="#1B1622"/><rect x="360" y="572" width="686" height="5" fill="#6B4B2E" opacity=".7"/>' +
-      '<rect x="390" y="590" width="16" height="150" fill="#100D14"/><rect x="1030" y="590" width="16" height="150" fill="#100D14"/>' +
-      '<path d="M470 572h60l-12 -10h-36Z" fill="#0B0A10"/><path d="M500 562L470 386L538 296" stroke="#0B0A10" stroke-width="9" fill="none"/>' +
-      '<path d="M520 282l52 -22l20 30l-52 20Z" fill="#0B0A10"/>' +
-      // the laptop right in front of him: the keyboard runs out under his hands, the screen turned toward him
-      '<path d="M756 566L946 566L992 573L744 573Z" fill="#12151F"/><path d="M800 566L940 566" stroke="#2A3150" stroke-width="2"/>' +
-      '<path d="M762 566L782 436L906 428L898 566Z" fill="#0B0D14"/><path d="M773 557L792 446L896 439L889 557Z" fill="#6FA2F0" class="lapglow"/>' +
-      // the mug, pushed to the far side of the laptop
-      '<rect x="696" y="538" width="30" height="34" rx="5" fill="#0B0A10"/>' +
-      '<path class="steam" d="M706 528c-12 -20 14 -30 0 -52M718 528c-10 -18 12 -28 0 -48" stroke="#E9D7BE" stroke-width="3" fill="none" opacity=".35"/>' +
-      '<path d="M1010 740V640h96v-20h-110v120Z" fill="#0A0B12"/><rect x="1040" y="652" width="12" height="88" fill="#0A0B12"/>' +
-      '<rect x="1086" y="470" width="16" height="170" rx="6" fill="#0A0B12"/>' +
+      // the desk, seen from behind his chair and a little above
+      '<path d="M300 596H1300L1336 642H264Z" fill="#1B1622"/><path d="M264 642H1336" stroke="#6B4B2E" stroke-width="3" opacity=".6"/>' +
+      '<rect x="264" y="642" width="1072" height="18" fill="#120F18"/>' +
+      '<rect x="280" y="660" width="16" height="240" fill="#100D14"/><rect x="1304" y="660" width="16" height="240" fill="#100D14"/>' +
+      // the lamp on the left and its pool of light on the desk
+      '<path d="M452 334L392 616H706L520 334Z" fill="url(#dCone)"/>' +
+      '<ellipse cx="548" cy="616" rx="220" ry="24" fill="url(#dPool)"/>' +
+      '<path d="M404 610h64l-10 -10h-44Z" fill="#0B0A10"/><path d="M436 600L402 446L466 356" stroke="#0B0A10" stroke-width="9" fill="none" stroke-linejoin="round"/>' +
+      '<path d="M450 338l60 -20l18 32l-60 18Z" fill="#0B0A10"/>' +
+      // a notebook and a pen beside the keyboard
+      '<path d="M628 604H706L714 620H620Z" fill="#221F2E"/><path d="M640 613L700 607" stroke="#8C7B5A" stroke-width="2.5" stroke-linecap="round"/>' +
+      // the monitor faces him, and us over his shoulder: an editor with the code he is writing
+      '<path d="M748 606L762 592H822L836 606Z" fill="#0B0D14"/><rect x="780" y="520" width="24" height="74" fill="#0B0D14"/>' +
+      '<rect x="580" y="284" width="424" height="240" rx="8" fill="#05070C"/>' +
+      '<rect x="592" y="296" width="400" height="216" fill="url(#dCode)"/>' +
+      '<rect x="592" y="296" width="400" height="12" fill="#16213D"/><rect x="636" y="298" width="64" height="10" rx="2" fill="#1E2B4D"/>' +
+      '<circle cx="602" cy="302" r="2.4" fill="#E0676A"/><circle cx="611" cy="302" r="2.4" fill="#E3B454"/><circle cx="620" cy="302" r="2.4" fill="#5FB86E"/>' +
+      '<g class="code" clip-path="url(#dScreenClip)"></g>' +
+      '<path d="M592 296H730L592 432Z" fill="#FFFFFF" opacity=".035"/>' +
+      // the keyboard and the mouse under his hands
+      '<path d="M738 602H902L910 614H730Z" fill="#10131C"/><path d="M746 605.5H896M742 609.5H900" stroke="#262C40" stroke-width="1.4"/>' +
+      '<path d="M944 600H1032L1038 614H938Z" fill="#0E1018"/><ellipse cx="992" cy="606" rx="9" ry="6" fill="#151926"/>' +
+      // the mug
+      '<rect x="1100" y="566" width="28" height="34" rx="5" fill="#0B0A10"/><path d="M1128 574q12 0 12 11t-12 11" stroke="#0B0A10" stroke-width="5" fill="none"/>' +
+      '<path class="steam" d="M1108 556c-12 -20 14 -30 0 -52M1120 556c-10 -18 12 -28 0 -48" stroke="#E9D7BE" stroke-width="3" fill="none" opacity=".35"/>' +
       '<g class="typist"></g>'
     , 'desk');
   }
@@ -2395,7 +2470,7 @@ a{color:inherit}
 
   // what each scene is about, as a share of its width. A narrow screen sees only a slice of a
   // 16:9 scene, so the camera leans toward the figure instead of the middle.
-  var FOCUS = { tv: 1040 / VW, desk: 930 / VW, gym: 0.5, sky: 0.5 };
+  var FOCUS = { tv: 1040 / VW, desk: 812 / VW, gym: 0.5, sky: 0.5 };
   // the living room's subject, in drawing units: the set, and the viewer's head, shoulders and raised arm
   var HERO_ROI = { x: 560, y: 200, w: 700, h: 580 };
   var heroCard = document.querySelector('.hero-card'), topbar = document.querySelector('.topbar');
@@ -2490,6 +2565,7 @@ a{color:inherit}
 
   /* ---------- animation ---------- */
   var runnerG = run.querySelector('.runner'), typistG = desk.querySelector('.typist'), lifterG = gym.querySelector('.lifter'), viewerG = room.querySelector('.viewer');
+  var codeG = desk.querySelector('.code');
   var glowEls = room.querySelectorAll('.tvglow, .tvpool');
   var parallax = [].slice.call(run.querySelectorAll('.par')).concat([].slice.call(sky.querySelectorAll('.par')));
   var SPEEDS = { p1: 18, p2: 42, p3: 120, p4: 260, c1: 10, c2: 22 };
@@ -2502,9 +2578,17 @@ a{color:inherit}
       lit(r.far + r.feet[0], '#0B0816', '#FFB870', 2.2, -0.4) +
       lit(r.near + r.feet[1], '#0B0816', '#FFB870', 2.4, -0.5);
   }
+  // lit from two sides: the screen in front of him edges his head and shoulders blue, the lamp on his left warms them
+  function backlit(d, dark) {
+    return '<path d="' + d + '" fill="#FFB870" opacity=".75" transform="translate(-2.6 -1.2)"/>' +
+      '<path d="' + d + '" fill="#86B8FF" transform="translate(2 -2.8)"/>' + '<path d="' + d + '" fill="' + dark + '"/>';
+  }
   function drawTypist(t) {
-    var p = typist(t * 0.5 % 1, [1062, 616]);
-    typistG.innerHTML = lit(p.far, '#08090F', '#9CC4FF', -2, -0.6) + lit(p.near, '#08090F', '#9CC4FF', -2.2, -0.6);
+    var p = typist(t);
+    typistG.innerHTML = backlit(p.fore, '#08090F') + backlit(p.body, '#08090F') +
+      '<path d="' + p.chair + '" fill="#0A0B12"/>' +
+      '<path d="M866 896L930 868L994 896" stroke="#0A0B12" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>';
+    codeG.innerHTML = codeScreen(t);
   }
   function drawLifter(t) {
     var dd = (1 - Math.cos((t * 0.34 % 1) * Math.PI * 2)) / 2;
