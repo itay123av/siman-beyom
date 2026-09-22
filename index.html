@@ -434,19 +434,13 @@ a{color:inherit}
 .zcell{position:absolute;width:100vw;height:100vh;overflow:hidden}
 .zouter svg,.zcell svg{display:block;width:100%;height:100%}
 
-/* the filmed world behind the page */
-.vworld{position:absolute;left:0;top:0;width:100vw;height:100vh;transform-origin:0 0}
-.dscene{position:absolute;inset:0;width:100%;height:100%;display:block}
-.vworld .vfill{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
-.vtile{position:absolute;overflow:hidden;background:#0b0b0c}
-.vtv{border-radius:0}
-.vglare{position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,0) 40%);opacity:calc(1 - var(--inside,0))}
-.vafter{opacity:var(--inside,0)}
-.vmonth{position:absolute;left:50%;top:56%;transform:translate(-50%,-50%);display:grid;grid-template-columns:repeat(6,1fr);gap:.55vmin;width:58%}
-.vmonth span{aspect-ratio:1;border-radius:.45vmin;background:rgba(255,255,255,.26);border:.12vmin solid rgba(255,255,255,.75);position:relative;box-shadow:0 .4vmin 1.2vmin rgba(10,30,90,.18)}
-.vmonth span.on{background:rgba(200,162,49,.92);border-color:rgba(255,255,255,.95)}
-.vmonth span.on::before,.vmonth span.on::after{content:"";position:absolute;left:24%;right:24%;top:46%;height:9%;background:#fff;border-radius:99px;transform:rotate(45deg)}
-.vmonth span.on::after{transform:rotate(-45deg)}
+/* the drawn world behind the page: every scene sits inside a frame of the scene before it.
+   A level is one scene at its drawing size (1600x900 units = px); the camera scales the outer level. */
+.vstage{position:absolute;left:0;top:0;width:100vw;height:100vh;overflow:hidden}
+.vlevel{position:absolute;left:0;top:0;width:1600px;height:900px;transform-origin:0 0}
+.dscene{position:absolute;left:0;top:0;width:1600px;height:900px;display:block;overflow:visible}
+.vframe{position:absolute;overflow:hidden;background:#0b0b0c}
+.vglass{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(115deg,rgba(255,255,255,.2) 0%,rgba(255,255,255,0) 42%)}
 .hero,.section>.wrap,.closing>.wrap,.footer>.wrap{position:relative}
 .hero::before,.section>.wrap::before,.closing>.wrap::before,.footer>.wrap::before{
   content:"";position:absolute;inset:-26px -12px;z-index:-1;border-radius:24px;
@@ -473,17 +467,11 @@ a{color:inherit}
 .hero .hero-grid{grid-template-columns:1fr;gap:0;margin-top:clamp(14px,1.6vw,22px)}
 .hero .lede{font-size:1.02rem;max-width:40em}
 .hero .actions{margin-top:18px}
-.chapter{height:135vh;position:relative}
+.chapter{height:150vh;position:relative}
 .chapter-cap{position:sticky;top:calc(100vh - 150px);margin:0 auto;width:max-content;max-width:calc(100% - 32px);
   background:rgba(247,244,237,.965);color:var(--ink);border-radius:18px;padding:14px 22px;
   font-family:var(--display);font-weight:400;font-size:clamp(1.3rem,2.2vw,1.9rem);line-height:1.3;text-align:center;
   box-shadow:0 24px 60px -34px rgba(0,0,0,.6)}
-.vmonth{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);display:grid;grid-template-columns:repeat(6,1fr);
-  gap:clamp(8px,1.1vw,16px);width:min(64vw,620px);opacity:0;pointer-events:none;will-change:opacity,transform}
-.vmonth span{aspect-ratio:1;border-radius:clamp(8px,1vw,14px);background:rgba(255,255,255,.3);border:1.5px solid rgba(255,255,255,.85);position:relative;box-shadow:0 10px 30px -12px rgba(10,30,90,.35)}
-.vmonth span.on{background:rgba(200,162,49,.94);border-color:#fff}
-.vmonth span.on::before,.vmonth span.on::after{content:"";position:absolute;left:26%;right:26%;top:46%;height:8%;background:#fff;border-radius:99px;transform:rotate(45deg)}
-.vmonth span.on::after{transform:rotate(-45deg)}
 .tower-flat{height:auto;min-height:0;border-top:2px solid var(--ink);padding-top:10px;display:flex;justify-content:space-between;align-items:center}
 .tower-flat .cap{position:static}
 .tower-flat .ring{position:static}
@@ -2324,6 +2312,13 @@ a{color:inherit}
       '<rect width="1600" height="900" fill="url(#sSky)"/>' +
       '<circle cx="1160" cy="620" r="420" fill="url(#sSun)"/><circle cx="1160" cy="620" r="86" fill="#FFF0C6"/>' +
       '<g class="par p1"><path d="' + range(560, 90, 1.1, 3200) + '" fill="#8A6AA6" opacity=".55"/></g>' +
+      // on the hill ahead, a house with one window lit: someone is already at work in there.
+      // The window is the frame the next scene lives in, so the house stays put while the hills run past.
+      '<path d="M1170 526Q1290 488 1416 500Q1524 510 1600 544V660H1170Z" fill="#6E5392"/>' +
+      '<rect x="1296" y="364" width="240" height="142" fill="#2B1F45"/>' +
+      '<path d="M1278 370L1416 290L1554 370Z" fill="#231938"/><rect x="1470" y="298" width="18" height="46" fill="#231938"/>' +
+      '<rect x="1318" y="362" width="196" height="126" fill="#FFC47A" opacity=".16"/>' +
+      '<rect x="1328" y="372" width="176" height="106" fill="#16102A"/>' +
       '<g class="par p2"><path d="' + range(622, 110, 2.7, 3200) + '" fill="#5A4580" opacity=".8"/></g>' +
       '<g class="par p3"><path d="' + trees + '" fill="#2B1F45"/><path d="M0 742H3200V900H0Z" fill="#2B1F45"/></g>' +
       '<rect y="742" width="1600" height="158" fill="url(#sGround)"/>' +
@@ -2368,7 +2363,8 @@ a{color:inherit}
       // above the screen, a wall calendar with a mark on every day done; a note stuck beside the screen
       '<rect x="728" y="110" width="128" height="142" rx="4" fill="#232842"/><rect x="728" y="110" width="128" height="24" rx="4" fill="#1A1E36"/>' +
       '<path d="M756 110v-8M828 110v-8" stroke="#3A4165" stroke-width="3" stroke-linecap="round"/>' + cal +
-      '<rect x="1014" y="300" width="30" height="30" fill="#6E5A1F" transform="rotate(6 1029 315)"/>' +
+      // his goal on the wall, a framed picture of the gym: the frame the next scene lives in
+      '<rect x="1030" y="220" width="196" height="119" rx="3" fill="#0B0D15" stroke="#2F3656" stroke-width="2"/>' +
       '<rect y="740" width="1600" height="160" fill="#07090F"/>' +
       // the desk, seen from behind his chair and a little above
       '<path d="M300 596H1300L1336 642H264Z" fill="#1B1622"/><path d="M264 642H1336" stroke="#6B4B2E" stroke-width="3" opacity=".6"/>' +
@@ -2406,13 +2402,14 @@ a{color:inherit}
       '<defs>' +
         '<linearGradient id="gWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1C1F2B"/><stop offset="1" stop-color="#101219"/></linearGradient>' +
         '<linearGradient id="gShaft" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFD9A0" stop-opacity=".42"/><stop offset="1" stop-color="#FFD9A0" stop-opacity="0"/></linearGradient>' +
-        '<linearGradient id="gWin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE9C4"/><stop offset="1" stop-color="#FFC77E"/></linearGradient>' +
+        '<linearGradient id="gWin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9CC2FA"/><stop offset=".62" stop-color="#FFE3BC"/><stop offset="1" stop-color="#FFC98A"/></linearGradient>' +
         '<linearGradient id="gFloor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#15171F"/><stop offset="1" stop-color="#08090D"/></linearGradient>' +
       '</defs>' +
       '<rect width="1600" height="900" fill="url(#gWall)"/>' +
-      '<g fill="url(#gWin)"><rect x="260" y="80" width="220" height="250" rx="4"/><rect x="560" y="80" width="220" height="250" rx="4"/><rect x="860" y="80" width="220" height="250" rx="4"/><rect x="1160" y="80" width="220" height="250" rx="4"/></g>' +
-      '<g stroke="#1C1F2B" stroke-width="8"><path d="M370 80V330M260 205H480M670 80V330M560 205H780M970 80V330M860 205H1080M1270 80V330M1160 205H1380"/></g>' +
-      '<g class="shafts"><path d="M260 330L480 330L900 900L520 900Z" fill="url(#gShaft)"/><path d="M860 330L1080 330L1500 900L1120 900Z" fill="url(#gShaft)"/></g>' +
+      // three wide windows onto the morning sky; the right one is the frame the last scene lives in
+      '<g fill="#0E1018"><rect x="200" y="72" width="272" height="160" rx="4"/><rect x="664" y="72" width="272" height="160" rx="4"/><rect x="1128" y="72" width="272" height="160" rx="4"/></g>' +
+      '<g fill="url(#gWin)"><rect x="208" y="80" width="256" height="144"/><rect x="672" y="80" width="256" height="144"/></g>' +
+      '<g class="shafts"><path d="M208 224L464 224L884 900L504 900Z" fill="url(#gShaft)"/><path d="M672 224L928 224L1348 900L968 900Z" fill="url(#gShaft)"/></g>' +
       '<rect y="740" width="1600" height="160" fill="url(#gFloor)"/>' +
       // a squat stand without a top bar, so the barbell never reads as part of the frame
       '<g fill="#0B0C12"><rect x="470" y="330" width="22" height="412"/><rect x="1108" y="330" width="22" height="412"/>' +
@@ -2429,6 +2426,15 @@ a{color:inherit}
       return '<g class="cloud" opacity="' + o + '" transform="translate(' + x + ' ' + y + ') scale(' + s + ')">' +
         '<ellipse cx="0" cy="0" rx="120" ry="42" fill="url(#kCloud)"/><circle cx="-40" cy="-26" r="46" fill="url(#kCloud)"/><circle cx="30" cy="-40" r="58" fill="url(#kCloud)"/><circle cx="84" cy="-12" r="38" fill="url(#kCloud)"/></g>';
     }
+    // the thirty days, seventeen of them marked. Drawn in 118-unit steps; layout() sizes and centres the grid
+    var cells = '';
+    for (var d = 0; d < 30; d++) {
+      var gx = (d % 6) * 118, gy = Math.floor(d / 6) * 118, on = d < 17;
+      cells += '<rect x="' + (gx + 3) + '" y="' + (gy + 9) + '" width="100" height="100" rx="20" fill="#0A2A7A" opacity=".13"/>' +
+        '<rect x="' + gx + '" y="' + gy + '" width="100" height="100" rx="20" fill="' + (on ? '#C8A231' : '#FFFFFF') + '" fill-opacity="' + (on ? '.95' : '.3') +
+        '" stroke="#FFFFFF" stroke-opacity="' + (on ? '1' : '.85') + '" stroke-width="3"/>' +
+        (on ? '<path d="M' + (gx + 31) + ' ' + (gy + 31) + 'l38 38m0 -38l-38 38" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round"/>' : '');
+    }
     return svgEl(
       '<defs>' +
         '<linearGradient id="kSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3E6FE0"/><stop offset=".6" stop-color="#8DB6FA"/><stop offset="1" stop-color="#FFE4C0"/></linearGradient>' +
@@ -2438,90 +2444,117 @@ a{color:inherit}
       '<rect width="1600" height="900" fill="url(#kSky)"/>' +
       '<circle cx="1300" cy="170" r="260" fill="url(#kSun)"/><circle cx="1300" cy="170" r="54" fill="#FFF7E2"/>' +
       '<g class="par c1">' + cloud(220, 210, 1.1, 0.95) + cloud(1020, 330, 0.8, 0.85) + cloud(1820, 210, 1.1, 0.95) + cloud(2620, 330, 0.8, 0.85) + '</g>' +
-      '<g class="par c2">' + cloud(560, 700, 1.5, 1) + cloud(1450, 780, 1.2, 0.95) + cloud(2160, 700, 1.5, 1) + cloud(3050, 780, 1.2, 0.95) + '</g>'
+      '<g class="par c2">' + cloud(560, 700, 1.5, 1) + cloud(1450, 780, 1.2, 0.95) + cloud(2160, 700, 1.5, 1) + cloud(3050, 780, 1.2, 0.95) + '</g>' +
+      '<g class="month" opacity="0">' + cells + '</g>'
     , 'sky');
   }
 
-  /* ---------- the world, laid out around the screen ---------- */
-  var world = document.createElement('div');
-  world.className = 'vworld';
-  host.appendChild(world);
-  var room = sceneRoom();
-  room.style.overflow = 'visible';
-  world.appendChild(room);
-
-  function tile(cls) {
-    var d = document.createElement('div');
-    d.className = 'vtile ' + (cls || '');
-    world.appendChild(d);
-    return d;
-  }
-  var tvTile = tile('vtv'), deskTile = tile('vafter'), gymTile = tile('vafter'), skyTile = tile('vafter');
-  var run = sceneRun(), desk = sceneDesk(), gym = sceneGym(), sky = sceneSky();
-  tvTile.appendChild(run);
-  var glare = document.createElement('i'); glare.className = 'vglare'; tvTile.appendChild(glare);
-  deskTile.appendChild(desk); gymTile.appendChild(gym); skyTile.appendChild(sky);
-
-  var month = document.createElement('div');
-  month.className = 'vmonth';
-  month.setAttribute('aria-hidden', 'true');
-  for (var i = 0; i < 30; i++) { var c = document.createElement('span'); if (i < 17) c.className = 'on'; month.appendChild(c); }
-  host.appendChild(month);
-
-  // what each scene is about, as a share of its width. A narrow screen sees only a slice of a
-  // 16:9 scene, so the camera leans toward the figure instead of the middle.
-  var FOCUS = { tv: 1040 / VW, desk: 812 / VW, gym: 0.5, sky: 0.5 };
+  /* ---------- the world: every scene holds the next one inside a frame ---------- */
+  // the living room's television holds the run, a lit window on the hill holds the desk, a picture on his
+  // wall holds the gym, and a gym window holds the sky. Scrolling only ever zooms in, through a frame,
+  // until the scene inside fills the screen and becomes the place the camera is in.
+  var room = sceneRoom(), run = sceneRun(), desk = sceneDesk(), gym = sceneGym(), sky = sceneSky();
+  var SCENES = [room, run, desk, gym, sky];
+  // the frame in each scene that holds the next one, in that scene's drawing units; every frame is 16:9
+  var PORTALS = [
+    { x: SCREEN.x, y: SCREEN.y, w: SCREEN.w, h: SCREEN.h, glass: 1 },   // the television
+    { x: 1336, y: 380, w: 160, h: 90, glass: 0.8 },                     // the lit window of the house on the hill
+    { x: 1040, y: 230, w: 176, h: 99, glass: 0.7 },                     // the picture of the gym on his wall
+    { x: 1136, y: 80, w: 256, h: 144, glass: 0.6 }                      // the gym's right-hand window
+  ];
+  // what each scene is about, as a share of its width. A narrow screen sees only a slice of a 16:9
+  // scene, so there the camera rests on the figure instead of the middle.
+  var FOCUS = [0.5, 1040 / VW, 812 / VW, 0.5, 0.5];
+  // a scene seen small through a frame holds still like a picture, and comes alive once it takes up
+  // this share of the screen's width
+  var ALIVE = [0, 0, 0.3, 0.3, 0];
   // the living room's subject, in drawing units: the set, and the viewer's head, shoulders and raised arm
   var HERO_ROI = { x: 560, y: 200, w: 700, h: 580 };
   var heroCard = document.querySelector('.hero-card'), topbar = document.querySelector('.topbar');
+  var monthG = sky.querySelector('.month');
 
-  // where the screen falls on this viewport, given the drawing is scaled to cover it
-  var RECTS = {}, SHOTS = {}, lifterScale = 1.32;
+  // four levels deep: the scene the camera is in, the one in its frame, and the two inside those
+  var stage = document.createElement('div');
+  stage.className = 'vstage';
+  host.appendChild(stage);
+  var levels = [], frames = [], panes = [];
+  (function build(parent, i) {
+    var lv = document.createElement('div');
+    lv.className = 'vlevel';
+    parent.appendChild(lv);
+    levels.push(lv);
+    if (i === 3) return;
+    var fr = document.createElement('div');
+    fr.className = 'vframe';
+    lv.appendChild(fr);
+    frames.push(fr);
+    build(fr, i + 1);
+    var pane = document.createElement('i');
+    pane.className = 'vglass';
+    fr.appendChild(pane);
+    panes.push(pane);
+  })(stage, 0);
+
+  // put scene k in the outer level and the scenes it holds in the frames inside it. When a zoom ends,
+  // the scene that filled the frame moves out one level and looks exactly as it did, so nothing jumps.
+  var mounted = -1;
+  function mount(k) {
+    if (k === mounted) return;
+    mounted = k;
+    for (var i = 0; i < 4; i++) {
+      var lv = levels[i], s = SCENES[k + i], old = lv.firstChild;
+      if (old && old !== frames[i] && old !== s) lv.removeChild(old);
+      if (!s) { lv.style.display = 'none'; continue; }
+      lv.style.display = '';
+      if (lv.firstChild !== s) lv.insertBefore(s, lv.firstChild);
+      if (i === 3) continue;
+      var p = PORTALS[k + i], fr = frames[i];
+      if (p && SCENES[k + i + 1]) {
+        fr.style.display = '';
+        fr.style.left = p.x + 'px'; fr.style.top = p.y + 'px'; fr.style.width = p.w + 'px'; fr.style.height = p.h + 'px';
+        levels[i + 1].style.transform = 'scale(' + (p.w / VW) + ')';
+      } else fr.style.display = 'none';
+    }
+  }
+
+  // a camera: how many screen pixels one drawing unit takes (z), the drawing point it looks at (x, y),
+  // and where on the screen that point sits (sx, sy)
+  var W = 1, H = 1, Z = 1, REST = [], lifterScale = 1.32;
   function layout() {
-    var W = world.clientWidth || window.innerWidth, H = world.clientHeight || window.innerHeight;
-    var k = Math.max(W / VW, H / VH), ox = (W - VW * k) / 2, oy = (H - VH * k) / 2;
-    function toView(x, y, w, h) { return { x: (ox + x * k) / W * 100, y: (oy + y * k) / H * 100, w: w * k / W * 100, h: h * k / H * 100 }; }
-    var tv = toView(SCREEN.x, SCREEN.y, SCREEN.w, SCREEN.h);
-    RECTS = {
-      full: { x: 0, y: 0, w: 100, h: 100 },
-      tv: tv,
-      desk: { x: tv.x + tv.w, y: tv.y, w: tv.w, h: tv.h },
-      gym: { x: tv.x - tv.w, y: tv.y, w: tv.w, h: tv.h },
-      sky: { x: tv.x - tv.w, y: tv.y - tv.h, w: tv.w, h: tv.h }
-    };
-    [[tvTile, tv], [deskTile, RECTS.desk], [gymTile, RECTS.gym], [skyTile, RECTS.sky]].forEach(function (p) {
-      p[0].style.left = p[1].x + '%'; p[0].style.top = p[1].y + '%';
-      p[0].style.width = p[1].w + '%'; p[0].style.height = p[1].h + '%';
-    });
-    SHOTS = {
-      full: heroShot(W, H, toView(HERO_ROI.x, HERO_ROI.y, HERO_ROI.w, HERO_ROI.h)),
-      tv: tileShot(RECTS.tv, FOCUS.tv),
-      desk: tileShot(RECTS.desk, FOCUS.desk),
-      gym: tileShot(RECTS.gym, FOCUS.gym),
-      sky: tileShot(RECTS.sky, FOCUS.sky)
-    };
+    W = stage.clientWidth || window.innerWidth; H = stage.clientHeight || window.innerHeight;
+    Z = Math.max(W / VW, H / VH);                               // the scale at which a scene just covers the screen
+    REST = SCENES.map(function (s, i) { return i === 0 && W < H ? heroShot() : restShot(i); });
     // the lifter shrinks on a narrow screen until the whole bar, plates included, fits in the frame
-    var gymSpan = Math.min(1, 100 / (SHOTS.gym.s * RECTS.gym.w)) * VW;
-    lifterScale = Math.min(1.32, 0.86 * gymSpan / (2 * BAR_HALF + 12));
+    lifterScale = Math.min(1.32, 0.86 * (W / Z) / (2 * BAR_HALF + 12));
+    // the thirty days take a good part of the sky, whatever the shape of the screen
+    var g = Math.min(640, 0.62 * W / Z) / 690;
+    monthG.setAttribute('transform', 'translate(' + f(REST[4].x - 345 * g) + ' ' + f(430 - 286 * g) + ') scale(' + g.toFixed(4) + ')');
   }
-  // a scene filling the screen: centred on a wide screen, leaning toward its figure on a narrow one
-  function tileShot(r, fx) {
-    var s = cover(r);
-    var span = 100 / (s * r.w);                       // the share of the scene's width that is on screen
+  // a scene at rest: covering the screen, centred on a wide one, leaning toward its figure on a narrow one
+  function restShot(i) {
+    var span = (W / Z) / VW;                                     // the share of the scene's width on screen
     var lean = Math.min(1, Math.max(0, (0.9 - span) / 0.3));
-    var c = Math.min(1 - span / 2, Math.max(span / 2, 0.5 + (fx - 0.5) * lean));
-    return { s: s, cx: r.x + r.w * c, cy: r.y + r.h / 2, ay: 50 };
+    var c = Math.min(1 - span / 2, Math.max(span / 2, 0.5 + (FOCUS[i] - 0.5) * lean));
+    return { z: Z, x: VW * c, y: VH / 2, sx: W / 2, sy: H / 2 };
   }
-  // the opening shot. A wide screen shows the whole room; a portrait one steps back until the set and
-  // the viewer fit in the strip between the top bar and the opening card, which covers the rest.
-  // (cx, cy) is the point of the world the camera looks at; ay is how far down the screen it sits.
-  function heroShot(W, H, roi) {
-    if (W >= H) return { s: 1, cx: 50, cy: 50, ay: 50 };
+  // the portrait opening: the camera steps back until the set and the viewer fit in the strip between
+  // the top bar and the opening card, which covers the rest
+  function heroShot() {
     var top = topbar ? topbar.offsetHeight : 60;
     var bottom = heroCard ? heroCard.getBoundingClientRect().top + window.scrollY : H / 2;
     bottom = Math.min(H, Math.max(top + H * 0.25, bottom));
-    var s = Math.min(94 / roi.w, (bottom - top) / H * 94 / roi.h);
-    return { s: s, cx: roi.x + roi.w / 2, cy: roi.y + roi.h / 2, ay: (top + bottom) / 2 / H * 100 };
+    var z = Math.min(0.94 * W / HERO_ROI.w, 0.94 * (bottom - top) / HERO_ROI.h);
+    return { z: z, x: HERO_ROI.x + HERO_ROI.w / 2, y: HERO_ROI.y + HERO_ROI.h / 2, sx: W / 2, sy: (top + bottom) / 2 };
+  }
+  // the camera resting on the scene inside frame p, in the units of the scene that holds the frame
+  function through(c, p) {
+    var m = p.w / VW;
+    return { z: c.z / m, x: p.x + c.x * m, y: p.y + c.y * m, sx: c.sx, sy: c.sy };
+  }
+  // part way from a to b: the zoom keeps an even pace, and the point b looks at glides to its place on screen
+  function between(a, b, t) {
+    var sx = a.sx + (b.x - a.x) * a.z, sy = a.sy + (b.y - a.y) * a.z;
+    return { z: a.z * Math.pow(b.z / a.z, t), x: b.x, y: b.y, sx: sx + (b.sx - sx) * t, sy: sy + (b.sy - sy) * t };
   }
 
   /* ---------- the camera, driven by the chapters in the page ---------- */
@@ -2547,30 +2580,15 @@ a{color:inherit}
     return s;
   }
   function ease(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
-  function cover(r) { return Math.max(100 / r.w, 100 / r.h); }
-  function shotFor(stage) {
-    var names = ['full'].concat(ORDER);
-    if (stage >= names.length - 1) return SHOTS[names[names.length - 1]];
-    var k = Math.floor(stage), t = ease(Math.min(1, Math.max(0, stage - k)));
-    var a = SHOTS[names[k]], b = SHOTS[names[k + 1]];
-    var s = a.s * Math.pow(b.s / a.s, t);                    // zooms move geometrically
-    var u = Math.abs(b.s - a.s) < 1e-6 ? t : (s - a.s) / (b.s - a.s);
-    return { s: s, cx: a.cx + (b.cx - a.cx) * u, cy: a.cy + (b.cy - a.cy) * u, ay: a.ay + (b.ay - a.ay) * u };
-  }
-  function visible(shot, r) {
-    var e = 0.3, x0 = shot.cx - 50 / shot.s, x1 = shot.cx + 50 / shot.s;
-    var y0 = shot.cy - shot.ay / shot.s, y1 = shot.cy + (100 - shot.ay) / shot.s;
-    return r.x < x1 - e && r.x + r.w > x0 + e && r.y < y1 - e && r.y + r.h > y0 + e;
-  }
 
   /* ---------- animation ---------- */
   var runnerG = run.querySelector('.runner'), typistG = desk.querySelector('.typist'), lifterG = gym.querySelector('.lifter'), viewerG = room.querySelector('.viewer');
   var codeG = desk.querySelector('.code');
   var glowEls = room.querySelectorAll('.tvglow, .tvpool');
-  var parallax = [].slice.call(run.querySelectorAll('.par')).concat([].slice.call(sky.querySelectorAll('.par')));
+  var parallax = { run: [].slice.call(run.querySelectorAll('.par')), sky: [].slice.call(sky.querySelectorAll('.par')) };
   var SPEEDS = { p1: 18, p2: 42, p3: 120, p4: 260, c1: 10, c2: 22 };
-  var aim = 0, cur = 0, last = 0, t0 = performance.now(), raf = null, shot = null;
-  var scenesOn = { room: true, run: true, desk: false, gym: false, sky: false };
+  var aim = 0, cur = 0, last = 0, t0 = performance.now(), raf = null;
+  var alive = [true, true, false, false, false];
 
   function drawRunner(t) {
     var r = runner(t * 1.25 % 1, 1010, 742);
@@ -2605,54 +2623,52 @@ a{color:inherit}
     viewerG.innerHTML = lit(v.body, '#03050A', '#6F9EEB', 0, -3.5) +
       '<circle cx="' + f(v.led[0]) + '" cy="' + f(v.led[1]) + '" r="3" fill="#FF5A4A" opacity="' + (click > 0.2 ? 1 : 0.45) + '"/>';
   }
-  function drawAll(t, all) {
-    if (all) { drawViewer(t); drawRunner(t); drawTypist(t); drawLifter(t); }
-    if (scenesOn.room) {
+  function drift(list, t) {
+    list.forEach(function (g) {
+      var sp = SPEEDS[g.getAttribute('class').split(' ')[1]] || 20;
+      g.setAttribute('transform', 'translate(' + f(-((t * sp) % 1600)) + ' 0)');
+    });
+  }
+  var DRAW = [
+    function (t) {
       drawViewer(t);
       var fl = 0.82 + 0.18 * Math.sin(t * 7.3) * Math.sin(t * 3.1 + 1);
       for (var i = 0; i < glowEls.length; i++) glowEls[i].setAttribute('opacity', fl.toFixed(3));
-    }
-    if (scenesOn.run) {
-      drawRunner(t);
-      parallax.forEach(function (g) {
-        var cls = g.getAttribute('class').split(' ')[1], sp = SPEEDS[cls] || 20;
-        if ((g.ownerSVGElement === run && scenesOn.run) || (g.ownerSVGElement === sky && scenesOn.sky)) {
-          g.setAttribute('transform', 'translate(' + f(-((t * sp) % 1600)) + ' 0)');
-        }
-      });
-    } else if (scenesOn.sky) {
-      parallax.forEach(function (g) {
-        if (g.ownerSVGElement !== sky) return;
-        var cls = g.getAttribute('class').split(' ')[1];
-        g.setAttribute('transform', 'translate(' + f(-((t * (SPEEDS[cls] || 10)) % 1600)) + ' 0)');
-      });
-    }
-    if (scenesOn.desk) drawTypist(t);
-    if (scenesOn.gym) drawLifter(t);
+    },
+    function (t) { drawRunner(t); drift(parallax.run, t); },
+    drawTypist,
+    drawLifter,
+    function (t) { drift(parallax.sky, t); }
+  ];
+  function drawAll(t, all) {
+    for (var i = 0; i < SCENES.length; i++) if (all || alive[i]) DRAW[i](t);
   }
 
-  function apply(now) {
-    shot = shotFor(cur);
-    world.style.transform = 'translate(50vw,' + shot.ay.toFixed(3) + 'vh) scale(' + shot.s.toFixed(5) + ') translate(' + (-shot.cx).toFixed(4) + 'vw,' + (-shot.cy).toFixed(4) + 'vh)';
-    var tvS = cover(RECTS.tv), zoom = Math.log(shot.s) / Math.log(tvS);
-    var inside = Math.min(1, Math.max(0, (zoom - 0.9) / 0.1));
-    host.style.setProperty('--inside', inside.toFixed(3));
-    var skyShown = Math.min(1, Math.max(0, (cur - 3.55) / 0.4));
-    month.style.opacity = skyShown.toFixed(3);
-    month.style.transform = 'translate(-50%,-50%) scale(' + (0.94 + 0.06 * skyShown).toFixed(4) + ')';
-    scenesOn.room = zoom < 0.99;
-    scenesOn.run = visible(shot, RECTS.tv);
-    scenesOn.desk = inside > 0 && visible(shot, RECTS.desk);
-    scenesOn.gym = inside > 0 && visible(shot, RECTS.gym);
-    scenesOn.sky = inside > 0 && visible(shot, RECTS.sky);
-    room.style.visibility = scenesOn.room ? 'visible' : 'hidden';
+  function apply() {
+    var n = SCENES.length, k = Math.min(n - 2, Math.floor(cur)), t = ease(Math.min(1, Math.max(0, cur - k)));
+    mount(k);
+    var c = between(REST[k], through(REST[k + 1], PORTALS[k]), t);
+    // the outer level carries the camera; every level inside sits in its frame at the frame's scale
+    var a = c.z, bx = c.sx - c.x * a, by = c.sy - c.y * a;
+    levels[0].style.transform = 'translate(' + bx.toFixed(2) + 'px,' + by.toFixed(2) + 'px) scale(' + a.toFixed(5) + ')';
+    for (var j = 0; j < n; j++) alive[j] = false;
+    for (var i = 0; i < 4 && k + i < n; i++) {
+      var idx = k + i, w = VW * a;
+      alive[idx] = w > 8 && w >= ALIVE[idx] * W && bx < W && by < H && bx + w > 0 && by + VH * a > 0;
+      if (idx === n - 1) monthG.setAttribute('opacity', Math.min(1, Math.max(0, (w / W - 0.55) / 0.35)).toFixed(3));
+      var p = PORTALS[idx];
+      if (!p || i === 3) break;
+      // the glass over a frame fades as the camera closes in on it
+      panes[i].style.opacity = (p.glass * Math.min(1, Math.max(0, (0.8 - p.w * a / W) / 0.5))).toFixed(3);
+      bx += p.x * a; by += p.y * a; a *= p.w / VW;
+    }
   }
   function tick(now) {
     var dt = Math.min(0.05, (now - last) / 1000 || 0.016);
     last = now;
     cur += (aim - cur) * (1 - Math.exp(-dt * 6));
     if (Math.abs(aim - cur) < 0.0005) cur = aim;
-    apply(now);
+    apply();
     drawAll((now - t0) / 1000);
     raf = document.hidden ? null : requestAnimationFrame(tick);
   }
