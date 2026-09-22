@@ -469,6 +469,7 @@ a{color:inherit}
 .hero .lede{font-size:1.02rem;max-width:40em}
 .hero .actions{margin-top:18px}
 .chapter{height:150vh;position:relative}
+.chapter[data-cam="desk"],.chapter[data-cam="gym"]{height:210vh}
 .chapter-cap{position:sticky;top:calc(100vh - 150px);margin:0 auto;width:max-content;max-width:calc(100% - 32px);
   background:rgba(247,244,237,.965);color:var(--ink);border-radius:18px;padding:14px 22px;
   font-family:var(--display);font-weight:400;font-size:clamp(1.3rem,2.2vw,1.9rem);line-height:1.3;text-align:center;
@@ -2302,10 +2303,13 @@ a{color:inherit}
     }
     // an early street at sunrise, filmed from a camera that holds still while he runs through the shot.
     // The town far off on the horizon, trees along the pavement, and the block of flats he runs past.
-    var town = '';
+    var town = '', lights = '';
     for (var i = 0; i < 20; i++) {
-      var tx = i * 84 - 30, th = 36 + ((i * 53) % 84);
-      town += 'M' + tx + ' 716V' + (716 - th) + 'h' + (58 + (i % 3) * 8) + 'V716Z';
+      var tx = i * 84 - 30, th = 36 + ((i * 53) % 84), tw = 58 + (i % 3) * 8;
+      town += 'M' + tx + ' 716V' + (716 - th) + 'h' + tw + 'V716Z';
+      // a few windows already lit in every block
+      for (var r = 0; r * 18 + 14 < th; r++) for (var c = 0; c * 16 + 12 < tw; c++)
+        if ((i * 7 + r * 3 + c * 5) % 6 === 0) lights += 'M' + (tx + 6 + c * 16) + ' ' + (716 - th + 8 + r * 18) + 'h5v6h-5Z';
     }
     // a street tree: a trunk and a crown of overlapping rounds; the two in front also have a hedge at their
     // foot, deep enough to hide him whole as he passes behind. The trunk runs the same way round as the
@@ -2333,10 +2337,15 @@ a{color:inherit}
         '<radialGradient id="sLit" cx=".5" cy=".65" r=".7"><stop offset="0" stop-color="#FFE7BC"/><stop offset=".58" stop-color="#FFC47A"/><stop offset="1" stop-color="#E2904F"/></radialGradient>' +
       '</defs>' +
       '<rect width="1600" height="900" fill="url(#sSky)"/>' +
-      '<circle cx="330" cy="700" r="420" fill="url(#sSun)"/><circle cx="330" cy="700" r="78" fill="#FFF0C6"/>' +
+      '<circle cx="380" cy="560" r="420" fill="url(#sSun)"/><circle cx="380" cy="560" r="70" fill="#FFF0C6"/>' +
       '<g class="birds" fill="none" stroke="#2B1F45" stroke-width="3" stroke-linecap="round"><path d="M300 210q12 -10 22 0q10 -10 22 0"/><path d="M360 250q9 -8 17 0q8 -8 17 0"/><path d="M250 270q8 -7 15 0q7 -7 15 0"/></g>' +
       '<path d="' + range(668, 60, 1.1, 1600) + '" fill="#8A6AA6" opacity=".5"/>' +
-      '<path d="' + town + '" fill="#5A4580" opacity=".75"/>' +
+      '<path d="' + town + '" fill="#5A4580" opacity=".75"/><path d="' + lights + '" fill="#FFD08A" opacity=".8"/>' +
+      // a narrow tower of the town, standing against the sun in the gap between two trees. One of its lit
+      // windows is the frame the next scene lives in: from here it is just one small light among many.
+      '<rect x="360" y="606" width="44" height="110" fill="#4A3A6E"/><rect x="356" y="600" width="52" height="8" fill="#3E305E"/>' +
+      '<g fill="#2A2040"><rect x="368" y="616" width="28" height="17.5"/><rect x="368" y="638" width="28" height="17.5"/><rect x="368" y="660" width="28" height="17.5"/><rect x="368" y="682" width="28" height="17.5"/></g>' +
+      '<rect x="370" y="618" width="24" height="13.5" fill="#FFD08A" opacity=".85"/><rect x="370" y="662" width="24" height="13.5" fill="#FFD08A" opacity=".55"/>' +
       // the block of flats, standing on the pavement: three floors, and one window lit on the top floor,
       // where someone is already at work. That window is the frame the next scene lives in.
       '<rect x="560" y="262" width="540" height="550" fill="url(#sFacade)"/>' +
@@ -2348,8 +2357,9 @@ a{color:inherit}
       pane(600, 672, 150, 100) + pane(910, 672, 150, 100) +
       '<rect x="790" y="680" width="80" height="132" fill="#150F26"/><rect x="800" y="690" width="60" height="26" fill="#FFC47A" opacity=".4"/>' +
       '<rect x="712" y="292" width="236" height="159" fill="#FFC47A" opacity=".13"/><rect x="736" y="316" width="188" height="111" fill="#1A1330"/>' +
+      '<rect x="742" y="322" width="176" height="99" fill="url(#sLit)"/><path d="' + (function () { var b = ''; for (var y = 328; y < 421; y += 11) b += 'M742 ' + y + 'h176'; return b; })() + '" stroke="#96592A" stroke-opacity=".16" stroke-width="3"/>' +
       // background trees and a street lamp still lit from the night
-      '<path d="' + tree(160, 260, 78) + tree(330, 220, 66) + tree(1330, 250, 74) + tree(1490, 230, 70) + '" fill="#2B1F45"/>' +
+      '<path d="' + tree(120, 250, 72) + tree(250, 210, 60) + tree(1330, 250, 74) + tree(1490, 230, 70) + '" fill="#2B1F45"/>' +
       '<rect x="1254" y="566" width="8" height="246" fill="#1E1730"/><path d="M1258 570q0 -22 30 -22h16" stroke="#1E1730" stroke-width="7" fill="none"/>' +
       '<circle cx="1306" cy="556" r="46" fill="url(#sLamp)"/><rect x="1296" y="546" width="22" height="10" rx="3" fill="#FFE2B0"/>' +
       // the pavement and the road
@@ -2376,34 +2386,34 @@ a{color:inherit}
       cal += '<rect x="' + cx + '" y="' + cy + '" width="14" height="14" rx="2" fill="none" stroke="#4A5378" stroke-width="1.5"/>';
       if (d < 17) cal += '<path d="M' + (cx + 3.5) + ' ' + (cy + 3.5) + 'l7 7m0 -7l-7 7" stroke="#C8A231" stroke-width="2" stroke-linecap="round"/>';
     }
-    // what his window looks out on: the street at dawn and, across it, a gym already lit, open early.
-    // Its middle window is the frame the next scene lives in.
-    var skyline = '';
-    for (var s = 0; s < 14; s++) { var sx = 342 + s * 68, sh = 30 + ((s * 37) % 70); skyline += 'M' + sx + ' 392V' + (392 - sh) + 'h' + (52 + (s % 2) * 10) + 'V392Z'; }
-    function litWin(x, y, w, h) {
-      return '<rect x="' + (x - 5) + '" y="' + (y - 5) + '" width="' + (w + 10) + '" height="' + (h + 10) + '" fill="#0F1020"/>' +
-        '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="url(#dGymLight)"/>';
+    // what his window looks out on: the city at dawn, towers with a few windows already lit. One of those small
+    // lights, on the tower to the right, is the frame the next scene lives in.
+    var TOWERS = [[342, 60, 300], [406, 48, 330], [458, 70, 270], [532, 54, 318], [590, 80, 250], [674, 50, 300], [728, 66, 282],
+      [798, 58, 322], [860, 76, 262], [940, 50, 310], [994, 80, 292], [1156, 50, 316], [1210, 48, 290]];
+    var towers = '', dark = '', lit = '';
+    TOWERS.forEach(function (tw, n) {
+      towers += 'M' + tw[0] + ' 443V' + tw[2] + 'h' + tw[1] + 'V443Z';
+      for (var y = tw[2] + 12, r = 0; y < 432; y += 18, r++) for (var x = tw[0] + 7, c = 0; x + 10 < tw[0] + tw[1] - 4; x += 16, c++)
+        ((n * 5 + r * 3 + c * 7) % 4 === 0 ? (lit += 'M' + x + ' ' + y + 'h10v6h-10Z') : (dark += 'M' + x + ' ' + y + 'h10v6h-10Z'));
+    });
+    // the nearer tower on the right, with bigger windows
+    towers += 'M1080 443V258h72V443Z';
+    for (var ty = 272, tr = 0; ty < 432; ty += 22, tr++) for (var tc = 0; tc < 2; tc++) {
+      var twx = 1090 + tc * 28;
+      if (twx === 1118 && ty === 294) continue;          // the frame itself, drawn by the page
+      ((tr + tc * 2) % 3 === 0 ? (lit += 'M' + twx + ' ' + ty + 'h16v9h-16Z') : (dark += 'M' + twx + ' ' + ty + 'h16v9h-16Z'));
     }
     var view =
       '<rect x="342" y="72" width="916" height="372" fill="url(#dDawn)"/>' +
       '<circle cx="470" cy="112" r="1.6" fill="#fff" opacity=".7"/><circle cx="1120" cy="96" r="1.4" fill="#fff" opacity=".6"/><circle cx="880" cy="128" r="1.2" fill="#fff" opacity=".5"/>' +
-      '<path d="' + skyline + '" fill="#2A2448"/>' +
-      '<rect x="560" y="240" width="520" height="204" fill="#1B1C30"/><rect x="552" y="232" width="536" height="12" fill="#15162A"/>' +
-      '<rect x="758" y="204" width="124" height="30" rx="4" fill="#26223C"/>' +
-      '<path d="M786 219H854M790 211v16M798 213v12M850 211v16M842 213v12" stroke="#FFC98A" stroke-width="5" stroke-linecap="round"/>' +
-      litWin(604, 290, 136, 76.5) + litWin(752, 290, 136, 76.5) + litWin(900, 290, 136, 76.5) +
-      '<path d="M624 366.5V332h8v34.5M708 366.5V326h8v40.5M624 340h92" stroke="#3A2A2A" stroke-width="5" opacity=".55"/>' +
-      '<rect x="1040" y="380" width="30" height="64" fill="#FFD9A6" opacity=".7"/>' +
-      '<rect x="342" y="404" width="916" height="40" fill="#141528"/>' +
-      '<rect x="470" y="300" width="6" height="104" fill="#141528"/><circle cx="473" cy="300" r="26" fill="url(#dStreet)"/>';
+      '<path d="' + towers + '" fill="#1E1D36"/><path d="' + dark + '" fill="#2C2A4A"/><path d="' + lit + '" fill="#FFD08A" opacity=".85"/>' +
+      '<rect x="1116" y="292" width="20" height="13" fill="#15142A"/>';
     return svgEl(
       '<defs>' +
         '<linearGradient id="dCode" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#101A33"/><stop offset="1" stop-color="#0A1124"/></linearGradient>' +
         '<clipPath id="dScreenClip"><rect x="644" y="404" width="312" height="172"/></clipPath>' +
         '<clipPath id="dView"><rect x="342" y="72" width="916" height="372"/></clipPath>' +
         '<linearGradient id="dDawn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#16214C"/><stop offset=".45" stop-color="#3F3A78"/><stop offset=".8" stop-color="#D9826B"/><stop offset="1" stop-color="#F3AE78"/></linearGradient>' +
-        '<linearGradient id="dGymLight" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE3B8"/><stop offset="1" stop-color="#FFC68A"/></linearGradient>' +
-        '<radialGradient id="dStreet" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFD9A0" stop-opacity=".6"/><stop offset="1" stop-color="#FFD9A0" stop-opacity="0"/></radialGradient>' +
         '<linearGradient id="dWall" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#101529"/><stop offset="1" stop-color="#0A0D19"/></linearGradient>' +
         '<linearGradient id="dCone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFC878" stop-opacity=".55"/><stop offset="1" stop-color="#FFC878" stop-opacity="0"/></linearGradient>' +
         '<radialGradient id="dPool" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFC878" stop-opacity=".45"/><stop offset="1" stop-color="#FFC878" stop-opacity="0"/></radialGradient>' +
@@ -2513,15 +2523,12 @@ a{color:inherit}
   // the frame in each scene that holds the next one, in that scene's drawing units; every frame is 16:9,
   // and each sits near the middle of its scene, so the camera pushes straight in rather than swinging across.
   // cover is what the frame looks like from outside: the colours of the set, the light in the windows.
+  var GLOW = 'radial-gradient(closest-side,#FFE6B0,rgba(255,208,138,.9) 65%,rgba(255,190,110,.75))';
   var PORTALS = [
-    { x: SCREEN.x, y: SCREEN.y, w: SCREEN.w, h: SCREEN.h, glass: 1,     // the television
-      cover: 'radial-gradient(70% 60% at 30% 78%,rgba(255,236,190,.7),rgba(255,236,190,0) 70%),linear-gradient(#27306F,#6A4F9E 45%,#EF9565 78%,#FFD48C)' },
-    { x: 742, y: 322, w: 176, h: 99, glass: 0.7,                        // the lit window on the top floor of the flats
-      cover: 'repeating-linear-gradient(rgba(150,90,40,.14) 0 3px,rgba(0,0,0,0) 3px 11px),radial-gradient(90% 100% at 50% 65%,#FFE7BC,#FFC47A 58%,#E2904F)' },
-    { x: 752, y: 290, w: 136, h: 76.5, glass: 0.6,                      // the gym's middle window, across the street
-      cover: 'linear-gradient(#FFE3B8,#FFC68A)' },
-    { x: 672, y: 80, w: 256, h: 144, glass: 0.5,                        // the gym's high window above the lifter
-      cover: 'linear-gradient(#9CC2FA,#FFE3BC 62%,#FFC98A)' }
+    { x: SCREEN.x, y: SCREEN.y, w: SCREEN.w, h: SCREEN.h, glass: 1, glow: 0 },      // the television
+    { x: 370, y: 640, w: 24, h: 13.5, glass: 0.4, glow: 0.85, cover: GLOW },       // a lit window of the distant town's tower
+    { x: 1118, y: 294, w: 16, h: 9, glass: 0.4, glow: 0.85, cover: GLOW },         // a lit window of a tower across the city
+    { x: 672, y: 80, w: 256, h: 144, glass: 0.5, glow: 0 }                         // the gym's high window above the lifter
   ];
   // what each scene is about, as a share of its width. A narrow screen sees only a slice of a 16:9
   // scene, so there the camera rests on its subject instead of the middle.
@@ -2575,7 +2582,7 @@ a{color:inherit}
       if (p && SCENES[k + i + 1]) {
         fr.style.display = '';
         fr.style.left = p.x + 'px'; fr.style.top = p.y + 'px'; fr.style.width = p.w + 'px'; fr.style.height = p.h + 'px';
-        covers[i].style.background = p.cover;
+        covers[i].style.background = p.cover || 'none';
         levels[i + 1].style.transform = 'scale(' + (p.w / VW) + ')';
       } else fr.style.display = 'none';
     }
@@ -2724,20 +2731,20 @@ a{color:inherit}
     var a = c.z, bx = c.sx - c.x * a, by = c.sy - c.y * a;
     levels[0].style.transform = 'translate(' + bx.toFixed(2) + 'px,' + by.toFixed(2) + 'px) scale(' + a.toFixed(5) + ')';
     for (var j = 0; j < n; j++) alive[j] = false;
-    var open = true;                                    // is this level on show, or still behind its frame's cover
+    var seen = true;                                    // is this level big enough to be drawn at all
     for (var i = 0; i < 4 && k + i < n; i++) {
       var idx = k + i, w = VW * a, fill = Math.min(w / W, VH * a / H);
-      alive[idx] = open && w > 8 && bx < W && by < H && bx + w > 0 && by + VH * a > 0;
-      // the thirty days come out last, once the sky itself is in the clear
+      alive[idx] = seen && w > 8 && bx < W && by < H && bx + w > 0 && by + VH * a > 0;
+      // the thirty days come out last, once the sky itself fills the screen
       if (idx === n - 1) monthG.setAttribute('opacity', Math.min(1, Math.max(0, (fill - 0.85) / 0.15)).toFixed(3));
       var p = PORTALS[idx];
       if (!p || i === 3) break;
-      // how much of the screen the frame fills: under about half it is only a lit window or a glowing
-      // set; it opens onto the place behind it as it comes to fill the screen
-      var pf = Math.min(p.w * a / W, p.h * a / H), shut = open ? Math.min(1, Math.max(0, (0.95 - pf) / 0.4)) : 1;
-      covers[i].style.opacity = shut.toFixed(3);
-      levels[i + 1].style.visibility = shut > 0.999 ? 'hidden' : '';
-      open = shut < 0.999;
+      // a small window far off is only its light; the light thins out as the window comes close, and the
+      // place that was inside it all along shows through
+      var pw = p.w * a, pf = Math.min(pw / W, p.h * a / H);
+      covers[i].style.opacity = (p.glow * Math.min(1, Math.max(0, (0.22 - pf) / 0.17))).toFixed(3);
+      seen = seen && pw >= 6;
+      levels[i + 1].style.visibility = seen ? '' : 'hidden';
       // the glass over a frame fades as the camera closes in on it
       panes[i].style.opacity = (p.glass * Math.min(1, Math.max(0, (0.8 - p.w * a / W) / 0.5))).toFixed(3);
       bx += p.x * a; by += p.y * a; a *= p.w / VW;
