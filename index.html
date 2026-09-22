@@ -656,6 +656,35 @@ a{color:inherit}
   72%{opacity:1;transform:translateY(0)}
   100%{opacity:0;transform:translateY(-102%);pointer-events:none;visibility:hidden}
 }
+
+/* ===== phones and narrow screens ===== */
+/* the flat month row: the older 200px tower rules above win on order, so these win on specificity */
+.tower.tower-flat{height:auto;min-height:0;margin-top:0}
+.tower.tower-flat .cap{position:static}
+.tower.tower-flat .ring{position:relative;top:auto;inset-inline-end:auto}
+.grid30.revealing .day{transition:border-color .15s,background-color .15s}
+/* pin the chapter captions inside the part of the screen the browser's own bars never cover */
+@supports (height:100svh){ .chapter-cap{top:calc(100svh - 150px)} }
+@media (max-width:640px){
+  .hud{display:none}
+  .wave text{font-size:26px}
+  /* the cards float just inside the screen edge instead of running off it */
+  .section>.wrap,.closing>.wrap,.footer>.wrap{padding-inline:26px}
+  .section>.wrap::before,.closing>.wrap::before,.footer>.wrap::before{inset:-26px 10px;border-radius:18px}
+  .hero.wrap{padding-inline:10px}
+  .hero-card{padding:18px 16px;border-radius:18px}
+  .chapter-cap{font-size:1.2rem;padding:12px 18px}
+}
+@media (max-width:640px) and (orientation:portrait){
+  /* the opening scene keeps the top of the screen; the card starts below it */
+  .hero{min-height:0;justify-content:flex-start;padding-top:42vh;padding-bottom:28px}
+  @supports (height:100svh){ .hero{padding-top:42svh} }
+}
+@media (max-width:820px) and (orientation:landscape){
+  .hero-card{max-width:440px;margin-inline-start:auto}
+}
+/* a phone on its side: the reading ring would sit on top of the text */
+@media (max-height:500px){ .hud{display:none} }
 </style>
 </head>
 <body>
@@ -1502,7 +1531,8 @@ a{color:inherit}
           if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(part)); return; }
           var w = document.createElement('span');
           w.className = 'w';
-          if (letters) {
+          // numbers and Latin words stay whole: split into boxes, "30" would read "03" in a right-to-left line
+          if (letters && !/[0-9A-Za-z]/.test(part)) {
             part.split('').forEach(function (ch) {
               var li = document.createElement('i');
               li.textContent = ch;
@@ -1662,8 +1692,10 @@ a{color:inherit}
       }
     });
 
+    // on a phone the steps fill the width, so they rise into place instead of sliding in past the edge
+    var narrow = window.matchMedia('(max-width: 640px)').matches;
     G.utils.toArray('.step').forEach(function (s) {
-      G.from(s, { opacity: 0.2, x: -40, duration: 0.65, ease: 'power2.out', scrollTrigger: into(s) });
+      G.from(s, { opacity: 0.2, x: narrow ? 0 : -40, y: narrow ? 28 : 0, duration: 0.65, ease: 'power2.out', scrollTrigger: into(s) });
       var paths = s.querySelectorAll('.marks path');
       Array.prototype.forEach.call(paths, function (p) { p.setAttribute('pathLength', '1'); });
       G.fromTo(paths, { strokeDasharray: 1, strokeDashoffset: 1 },
@@ -1679,7 +1711,13 @@ a{color:inherit}
       ST.create({
         trigger: gridEl, start: 'top 85%', once: true,
         onEnter: function () {
-          G.from(gridEl.children, { opacity: 0.2, rotateY: 65, transformOrigin: 'right center', duration: 0.5, ease: 'power2.out', stagger: 0.015 });
+          // the cells' own CSS transition on transform fights the tween and leaves them frozen part-turned,
+          // so it is off while they turn in; clearing the props afterwards gives the hover lift back
+          gridEl.classList.add('revealing');
+          G.from(gridEl.children, {
+            opacity: 0.2, rotateY: 65, transformOrigin: 'right center', duration: 0.5, ease: 'power2.out', stagger: 0.015,
+            clearProps: 'transform,opacity', onComplete: function () { gridEl.classList.remove('revealing'); }
+          });
         }
       });
     }
@@ -1753,8 +1791,8 @@ a{color:inherit}
       });
     }
 
-    // each step turns a little as it travels through the viewport
-    G.utils.toArray('.step').forEach(function (s) {
+    // each step turns a little as it travels through the viewport (not on a phone, where it would swing past the edge)
+    if (!narrow) G.utils.toArray('.step').forEach(function (s) {
       G.fromTo(s, { rotateY: 7, transformPerspective: 1200 }, {
         rotateY: -7, ease: 'none',
         scrollTrigger: { trigger: s, start: 'top bottom', end: 'bottom top', scrub: 0.6 }
@@ -2169,9 +2207,12 @@ a{color:inherit}
         '<linearGradient id="rNight" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1B2552"/><stop offset="1" stop-color="#2B2F5C"/></linearGradient>' +
         '<radialGradient id="rMoon" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFF6DD"/><stop offset=".45" stop-color="#FFF1CF" stop-opacity=".9"/><stop offset="1" stop-color="#FFF1CF" stop-opacity="0"/></radialGradient>' +
       '</defs>' +
-      '<rect width="1600" height="620" fill="url(#rWall)"/>' +
-      '<rect y="620" width="1600" height="280" fill="url(#rFloor)"/>' +
-      '<rect y="614" width="1600" height="8" fill="#161E38"/>' +
+      // the wall and the floor run on past the frame, for the wider shot a portrait screen gets
+      '<rect x="-1600" y="-1600" width="4800" height="1600" fill="#111831"/>' +
+      '<rect x="-1600" width="4800" height="620" fill="url(#rWall)"/>' +
+      '<rect x="-1600" y="620" width="4800" height="280" fill="url(#rFloor)"/>' +
+      '<rect x="-1600" y="900" width="4800" height="1600" fill="#05070D"/>' +
+      '<rect x="-1600" y="614" width="4800" height="8" fill="#161E38"/>' +
       // the window and the city at night
       '<rect x="1150" y="118" width="340" height="356" rx="6" fill="#0A0E1B"/>' +
       '<rect x="1162" y="130" width="316" height="332" fill="url(#rNight)"/>' +
@@ -2191,7 +2232,7 @@ a{color:inherit}
       '<rect x="1110" y="540" width="44" height="60" rx="8" fill="#0A0D18"/><circle cx="1132" cy="560" r="10" fill="#141C38"/><circle cx="1132" cy="586" r="6" fill="#141C38"/>' +
       // the couch back and the viewer, lit from the screen
       '<g class="viewer"></g>' +
-      '<path d="M560 900V742q0 -38 44 -44L1560 676q40 -2 40 40V900Z" fill="#04060B"/>' +
+      '<path d="M560 2500V742q0 -38 44 -44L1560 676q40 -2 40 40V2500Z" fill="#04060B"/>' +
       '<path d="M604 698L1560 676q40 -2 40 40" stroke="#2F4F96" stroke-width="4" fill="none" opacity=".75"/>' +
       '<path d="M640 760c30 -40 90 -48 140 -30s40 70 -30 76s-138 -10 -110 -46Z" fill="#070A12"/>'
     , 'room');
@@ -2313,6 +2354,7 @@ a{color:inherit}
   world.className = 'vworld';
   host.appendChild(world);
   var room = sceneRoom();
+  room.style.overflow = 'visible';
   world.appendChild(room);
 
   function tile(cls) {
@@ -2333,12 +2375,20 @@ a{color:inherit}
   for (var i = 0; i < 30; i++) { var c = document.createElement('span'); if (i < 17) c.className = 'on'; month.appendChild(c); }
   host.appendChild(month);
 
+  // what each scene is about, as a share of its width. A narrow screen sees only a slice of a
+  // 16:9 scene, so the camera leans toward the figure instead of the middle.
+  var FOCUS = { tv: 1040 / VW, desk: 930 / VW, gym: 0.5, sky: 0.5 };
+  // the living room's subject, in drawing units: the set, and the viewer's head, shoulders and raised arm
+  var HERO_ROI = { x: 560, y: 200, w: 700, h: 580 };
+  var heroCard = document.querySelector('.hero-card'), topbar = document.querySelector('.topbar');
+
   // where the screen falls on this viewport, given the drawing is scaled to cover it
-  var RECTS = {};
+  var RECTS = {}, SHOTS = {};
   function layout() {
-    var W = window.innerWidth, H = window.innerHeight;
+    var W = world.clientWidth || window.innerWidth, H = world.clientHeight || window.innerHeight;
     var k = Math.max(W / VW, H / VH), ox = (W - VW * k) / 2, oy = (H - VH * k) / 2;
-    var tv = { x: (ox + SCREEN.x * k) / W * 100, y: (oy + SCREEN.y * k) / H * 100, w: SCREEN.w * k / W * 100, h: SCREEN.h * k / H * 100 };
+    function toView(x, y, w, h) { return { x: (ox + x * k) / W * 100, y: (oy + y * k) / H * 100, w: w * k / W * 100, h: h * k / H * 100 }; }
+    var tv = toView(SCREEN.x, SCREEN.y, SCREEN.w, SCREEN.h);
     RECTS = {
       full: { x: 0, y: 0, w: 100, h: 100 },
       tv: tv,
@@ -2350,6 +2400,32 @@ a{color:inherit}
       p[0].style.left = p[1].x + '%'; p[0].style.top = p[1].y + '%';
       p[0].style.width = p[1].w + '%'; p[0].style.height = p[1].h + '%';
     });
+    SHOTS = {
+      full: heroShot(W, H, toView(HERO_ROI.x, HERO_ROI.y, HERO_ROI.w, HERO_ROI.h)),
+      tv: tileShot(RECTS.tv, FOCUS.tv),
+      desk: tileShot(RECTS.desk, FOCUS.desk),
+      gym: tileShot(RECTS.gym, FOCUS.gym),
+      sky: tileShot(RECTS.sky, FOCUS.sky)
+    };
+  }
+  // a scene filling the screen: centred on a wide screen, leaning toward its figure on a narrow one
+  function tileShot(r, fx) {
+    var s = cover(r);
+    var span = 100 / (s * r.w);                       // the share of the scene's width that is on screen
+    var lean = Math.min(1, Math.max(0, (0.9 - span) / 0.3));
+    var c = Math.min(1 - span / 2, Math.max(span / 2, 0.5 + (fx - 0.5) * lean));
+    return { s: s, cx: r.x + r.w * c, cy: r.y + r.h / 2, ay: 50 };
+  }
+  // the opening shot. A wide screen shows the whole room; a portrait one steps back until the set and
+  // the viewer fit in the strip between the top bar and the opening card, which covers the rest.
+  // (cx, cy) is the point of the world the camera looks at; ay is how far down the screen it sits.
+  function heroShot(W, H, roi) {
+    if (W >= H) return { s: 1, cx: 50, cy: 50, ay: 50 };
+    var top = topbar ? topbar.offsetHeight : 60;
+    var bottom = heroCard ? heroCard.getBoundingClientRect().top + window.scrollY : H / 2;
+    bottom = Math.min(H, Math.max(top + H * 0.25, bottom));
+    var s = Math.min(94 / roi.w, (bottom - top) / H * 94 / roi.h);
+    return { s: s, cx: roi.x + roi.w / 2, cy: roi.y + roi.h / 2, ay: (top + bottom) / 2 / H * 100 };
   }
 
   /* ---------- the camera, driven by the chapters in the page ---------- */
@@ -2378,17 +2454,17 @@ a{color:inherit}
   function cover(r) { return Math.max(100 / r.w, 100 / r.h); }
   function shotFor(stage) {
     var names = ['full'].concat(ORDER);
-    if (stage >= names.length - 1) { var last = RECTS[names[names.length - 1]]; return { s: cover(last), cx: last.x + last.w / 2, cy: last.y + last.h / 2 }; }
+    if (stage >= names.length - 1) return SHOTS[names[names.length - 1]];
     var k = Math.floor(stage), t = ease(Math.min(1, Math.max(0, stage - k)));
-    var a = RECTS[names[k]], b = RECTS[names[k + 1]];
-    var sa = cover(a), sb = cover(b);
-    var s = sa * Math.pow(sb / sa, t);                       // zooms move geometrically
-    var u = sa === sb ? t : (s - sa) / (sb - sa);
-    return { s: s, cx: (a.x + a.w / 2) + ((b.x + b.w / 2) - (a.x + a.w / 2)) * u, cy: (a.y + a.h / 2) + ((b.y + b.h / 2) - (a.y + a.h / 2)) * u };
+    var a = SHOTS[names[k]], b = SHOTS[names[k + 1]];
+    var s = a.s * Math.pow(b.s / a.s, t);                    // zooms move geometrically
+    var u = Math.abs(b.s - a.s) < 1e-6 ? t : (s - a.s) / (b.s - a.s);
+    return { s: s, cx: a.cx + (b.cx - a.cx) * u, cy: a.cy + (b.cy - a.cy) * u, ay: a.ay + (b.ay - a.ay) * u };
   }
   function visible(shot, r) {
-    var hw = 50 / shot.s, hh = 50 / shot.s, e = 0.3;
-    return r.x < shot.cx + hw - e && r.x + r.w > shot.cx - hw + e && r.y < shot.cy + hh - e && r.y + r.h > shot.cy - hh + e;
+    var e = 0.3, x0 = shot.cx - 50 / shot.s, x1 = shot.cx + 50 / shot.s;
+    var y0 = shot.cy - shot.ay / shot.s, y1 = shot.cy + (100 - shot.ay) / shot.s;
+    return r.x < x1 - e && r.x + r.w > x0 + e && r.y < y1 - e && r.y + r.h > y0 + e;
   }
 
   /* ---------- animation ---------- */
@@ -2448,7 +2524,7 @@ a{color:inherit}
 
   function apply(now) {
     shot = shotFor(cur);
-    world.style.transform = 'translate(50vw,50vh) scale(' + shot.s.toFixed(5) + ') translate(' + (-shot.cx).toFixed(4) + 'vw,' + (-shot.cy).toFixed(4) + 'vh)';
+    world.style.transform = 'translate(50vw,' + shot.ay.toFixed(3) + 'vh) scale(' + shot.s.toFixed(5) + ') translate(' + (-shot.cx).toFixed(4) + 'vw,' + (-shot.cy).toFixed(4) + 'vh)';
     var tvS = cover(RECTS.tv), zoom = Math.log(shot.s) / Math.log(tvS);
     var inside = Math.min(1, Math.max(0, (zoom - 0.9) / 0.1));
     host.style.setProperty('--inside', inside.toFixed(3));
@@ -2474,9 +2550,10 @@ a{color:inherit}
   function read() { aim = stageAt(window.scrollY); if (reduced) { cur = aim; apply(); drawAll(2.2, true); } }
   window.addEventListener('scroll', read, { passive: true });
   window.addEventListener('resize', function () { layout(); measure(); read(); apply(); });
-  window.addEventListener('load', function () { measure(); read(); });
-  if (window.ResizeObserver) new ResizeObserver(function () { measure(); read(); }).observe(document.body);
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { measure(); read(); });
+  // the opening card's height decides the portrait opening shot, so late fonts and layout shifts re-frame it
+  window.addEventListener('load', function () { layout(); measure(); read(); });
+  if (window.ResizeObserver) new ResizeObserver(function () { layout(); measure(); read(); }).observe(document.body);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { layout(); measure(); read(); });
   document.addEventListener('visibilitychange', function () { if (!document.hidden && !raf && !reduced) raf = requestAnimationFrame(tick); });
   layout();
   measure();
