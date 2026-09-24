@@ -66,7 +66,7 @@
   color-scheme:dark;
 }
 body,.topbar,.card,.day,.btn,.status,.timer-card,.banner,.tower,.stamp,.field input,
-.breath,.motion-btn,.cursor,.cursor-dot,.myth,.tool,.step,.section,.sources li{
+.breath,.cursor,.cursor-dot,.myth,.tool,.step,.section,.sources li{
   transition:background-color .9s ease, color .9s ease, border-color .9s ease, box-shadow .9s ease;
 }
 
@@ -140,9 +140,9 @@ a{color:inherit}
 .nav::-webkit-scrollbar{display:none}
 .nav a{text-decoration:none;font-size:.94rem;font-weight:500;color:var(--ink-2);padding-block:6px;white-space:nowrap;border-bottom:2px solid transparent}
 .nav a:hover{color:var(--ink);border-bottom-color:var(--hl)}
-/* phones: the brand, the four links and the motion switch share one row */
+/* phones: the brand and the four links share one row */
 @media (max-width:430px){ .topbar .wrap{gap:10px} .brand{gap:7px} .brand-mark{width:24px;height:24px} .brand-word{font-size:.98rem} .nav{gap:11px} .nav a{font-size:.8rem} }
-@media (max-width:350px){ .brand-mark{display:none} .nav{gap:9px} .nav a{font-size:.76rem} .hero .eyebrow{font-size:.72rem;gap:10px} }
+@media (max-width:350px){ .nav{gap:9px} .nav a{font-size:.76rem} .hero .eyebrow{font-size:.72rem;gap:10px} }
 
 /* hero */
 .hero{padding-block:clamp(40px,7vw,90px) clamp(56px,8vw,104px)}
@@ -532,7 +532,7 @@ a{color:inherit}
 /* nav links turn over on hover */
 .nav a{transform-style:preserve-3d;transition:transform .35s cubic-bezier(.2,.8,.2,1),color .2s,border-color .2s}
 :root[data-motion="on"] .nav a:hover{transform:perspective(400px) rotateX(-18deg) translateY(-1px)}
-.motion-btn:active,.btn:active{transform:scale(.96) !important}
+.btn:active{transform:scale(.96) !important}
 
 /* second, smaller dot trailing the pointer */
 .cursor-dot{
@@ -637,16 +637,6 @@ a{color:inherit}
 :root[data-motion="off"] *::after{animation:none !important;transition:none !important}
 :root[data-motion="off"] .tilt{transform:var(--base-t,none) !important}
 
-/* motion switch in the top bar */
-.motion-btn{
-  display:inline-flex;align-items:center;gap:8px;flex:none;cursor:pointer;
-  background:transparent;border:1.5px solid var(--rule);border-radius:999px;padding:5px 12px 5px 9px;
-  font:500 .82rem/1 var(--sans);color:var(--ink-2);transition:border-color .2s,color .2s
-}
-.motion-btn:hover{border-color:var(--ink-2);color:var(--ink)}
-.motion-btn .dot{width:9px;height:9px;border-radius:50%;background:var(--rule);flex:none;transition:background-color .2s,box-shadow .2s}
-:root[data-motion="on"] .motion-btn .dot{background:var(--hl);box-shadow:0 0 0 4px color-mix(in srgb, var(--hl) 28%, transparent)}
-@media (max-width:640px){ .motion-btn span:not(.dot){display:none} .motion-btn{padding:7px} }
 
 /* the curtain that lifts on arrival */
 .veil{
@@ -694,13 +684,10 @@ a{color:inherit}
 </head>
 <body>
 <script>
-/* decide the motion mode before anything paints: the visitor's own choice wins over the OS setting */
+/* the page always moves: there is no switch any more, and a choice left over from the old one is dropped */
 (function () {
-  var saved = null;
-  try { saved = localStorage.getItem('siman.motion'); } catch (e) {}
-  // motion is on by default; the switch in the top bar turns it off, and the choice sticks
-  var on = saved === 'off' ? false : true;
-  document.documentElement.setAttribute('data-motion', on ? 'on' : 'off');
+  try { localStorage.removeItem('siman.motion'); } catch (e) {}
+  document.documentElement.setAttribute('data-motion', 'on');
   document.documentElement.setAttribute('data-zone', 'hero');
   document.body && document.body.setAttribute('data-zone', 'hero');
 })();
@@ -720,9 +707,6 @@ a{color:inherit}
       <a href="#chain">השרשרת</a>
       <a href="#tools">כלים</a>
     </nav>
-    <button type="button" class="motion-btn" id="motion-btn" aria-pressed="true" title="הדלקה וכיבוי של האנימציות">
-      <span class="dot" aria-hidden="true"></span><span id="motion-label">תנועה</span>
-    </button>
     <div class="progress" id="progress" aria-hidden="true"></div>
   </div>
 </header>
@@ -742,7 +726,6 @@ a{color:inherit}
         <div class="actions">
           <a class="btn btn-primary" href="#contract">לנסח את החוזה שלי</a>
           <a class="btn btn-ghost" href="#method">לקרוא את השיטה</a>
-          <button type="button" class="btn-text" id="motion-hint" hidden>יש כאן הרבה תנועה. לכבות את האנימציות</button>
         </div>
       </div>
       <figure class="tally-panel" style="margin:0">
@@ -1467,31 +1450,6 @@ a{color:inherit}
     // the display face loads late; recalculate trigger positions once it lands
     window.addEventListener('load', function () { ST.refresh(); });
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { ST.refresh(); });
-  }
-
-  /* --- motion switch: the visitor's choice overrides the system setting --- */
-  var mBtn = $('#motion-btn'), mLabel = $('#motion-label'), mHint = $('#motion-hint');
-  function setMotion(on) {
-    try { localStorage.setItem('siman.motion', on ? 'on' : 'off'); } catch (e) {}
-    document.documentElement.setAttribute('data-motion', on ? 'on' : 'off');
-    try { location.reload(); } catch (e) {}
-  }
-  if (mBtn) {
-    mBtn.setAttribute('aria-pressed', motionOn ? 'true' : 'false');
-    if (mLabel) mLabel.textContent = motionOn ? 'תנועה' : 'תנועה כבויה';
-    mBtn.addEventListener('click', function () { setMotion(!motionOn); });
-  }
-  if (mHint) {
-    // the system asks for less motion, so offer the way out where it is easy to find
-    var systemQuiet = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (systemQuiet && motionOn) {
-      mHint.hidden = false;
-      mHint.addEventListener('click', function () { setMotion(false); });
-    } else if (!motionOn) {
-      mHint.textContent = 'להדליק את כל האנימציות';
-      mHint.hidden = false;
-      mHint.addEventListener('click', function () { setMotion(true); });
-    }
   }
 
   /* --- the curtain that lifts on arrival --- */
